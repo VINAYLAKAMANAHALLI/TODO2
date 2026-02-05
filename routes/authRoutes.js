@@ -35,6 +35,16 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // 1. Check for Hardcoded Admin Credentials
+    if (email === "admin@admin.com" && password === "admin123") {
+      const token = jwt.sign(
+        { userId: "000000000000000000000000", role: "admin" }, // Dummy ID and Admin Role
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
+      return res.json({ token, role: "admin" });
+    }
+
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
@@ -46,12 +56,12 @@ router.post("/login", async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user._id },
+      { userId: user._id, role: "user" }, // Add 'user' role to normal tokens
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    res.json({ token });
+    res.json({ token, role: "user" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

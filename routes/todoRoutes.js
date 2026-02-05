@@ -34,6 +34,21 @@ router.get("/", authMiddleware, async (req, res) => {
   }
 });
 
+// GET ALL TODOS (Admin: Get all todos with user name and email)
+router.get("/admin/all", authMiddleware, async (req, res) => {
+  try {
+    // Check the role from the token (req.user comes from authMiddleware)
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied. Admins only." });
+    }
+
+    const todos = await Todo.find({}).populate("user", "name email");
+    res.json(todos);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // UPDATE TODO (owner-only)
 router.put("/:id", authMiddleware, async (req, res) => {
   try {
